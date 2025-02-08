@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Message</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h2>Message from {{ message.username }}</h2>
+    <p>{{ message.content }}</p>
+
+    <h3>Comments</h3>
+    {% if message.comments %}
+        <ul>
+            {% for comment in message.comments %}
+                <li><strong>{{ comment.user }}:</strong> {{ comment.content }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No comments yet.</p>
+    {% endif %}
+
+    <h3>Add a Comment</h3>
+    <form method="POST">
+        {{ comment_form.hidden_tag() }}
+        <p>{{ comment_form.comment.label }} {{ comment_form.comment() }}</p>
+        <p>{{ comment_form.submit() }}</p>
+    </form>
+
+
+    <a href="{{ url_for('message_board') }}">Back to Message Board</a>
+</body>
+</html>

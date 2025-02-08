@@ -9,8 +9,7 @@ app.secret_key = 'your_secret_key'  # Change this to a strong secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db'
 db = SQLAlchemy(app)
 
-# Dummy user database
-users = {'admin': 'password123', 'user': 'user'}
+users = {'admin': 'admin', 'user': 'user'}
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -21,11 +20,23 @@ class MessageForm(FlaskForm):
     message = TextAreaField('Message', validators=[DataRequired()])
     submit = SubmitField('Post')
 
+class CommentForm(FlaskForm):
+    comment = TextAreaField('Comment', validators=[DataRequired()])
+    submit = SubmitField('Post Comment')
+
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False)
     content = db.Column(db.Text, nullable=False)
+    comments = db.relationship('Comment', backref='message', lazy=True)
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.String(150), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
+
+# Ensure database tables are created before the first request
 with app.app_context():
     db.create_all()
 
@@ -61,6 +72,22 @@ def message_board():
     
     messages = Message.query.all()
     return render_template('message_board.html', username=session['user'], form=form, messages=messages)
+
+@app.route('/message/<int:message_id>', methods=['GET', 'POST'])
+def view_message(message_id):
+    if 'user' not in session:
+        flash('Please log in first', 'warning')
+        return redirect(url_for('login'))
+    message = Message.query.get_or_404(message_id)
+    comment_form = CommentForm()
+
+    if comment_form.validate_on_submit():
+        new_comment = Comment(user=session['user'], content=comment_form.comment.data, message_id=message.id)
+        db.session.add(new_comment)
+        db.session.commit()
+        return redirect(url_for('view_message', message_id=message.id))
+
+    return render_template('view_message.html', message=message, comment_form=comment_form)
 
 @app.route('/logout')
 def logout():

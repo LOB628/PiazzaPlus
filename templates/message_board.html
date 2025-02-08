@@ -5,21 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Message Board</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .container {
+            display: flex;
+        }
+        .message-list {
+            width: 30%;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+        }
+        .message-content {
+            width: 70%;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
     <h2>Welcome, {{ username }}!</h2>
+
     <form method="POST">
         {{ form.hidden_tag() }}
         <p>{{ form.message.label }} {{ form.message() }}</p>
         <p>{{ form.submit() }}</p>
     </form>
 
-    <h3>Messages:</h3>
-    <ul>
-        {% for message in messages %}
-            <li><strong>{{ message.username }}</strong>: {{ message.content }}</li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <div class="message-list">
+            <h3>Messages</h3>
+            <ul>
+                {% for message in messages %}
+                    <li><a href="{{ url_for('view_message', message_id=message.id) }}">{{ message.username }}: {{ message.content[:20] }}...</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="message-content">
+            <h3>Select a message to view</h3>
+        </div>
+    </div>
 
     <a href="{{ url_for('logout') }}">Logout</a>
 </body>
