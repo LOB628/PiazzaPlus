@@ -34,7 +34,7 @@
             <h3>Messages</h3>
             <ul>
                 {% for message in messages %}
-                    <li><a href="{{ url_for('view_message', message_id=message.id) }}">{{ message.username }}: {{ message.content[:20] }}...</a></li>
+                    <li><a href="{{ url_for('view_message', message_id=message.id) }}">{{ message.username }} <span class="{{ message.user_role }}">{{ message.user_role }}</span>: {{ message.content[:20] }}...</a></li>
                 {% endfor %}
             </ul>
         </div>

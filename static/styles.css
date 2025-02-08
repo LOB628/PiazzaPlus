@@ -6,3 +6,10 @@ body {
 p.success { color: green; }
 p.danger { color: red; }
 p.warning { color: orange; }
+
+span.student {
+    color: blue;
+}
+span.instructor {
+    color: green;
+}

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField
 from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
 
@@ -9,11 +9,15 @@ app.secret_key = 'your_secret_key'  # Change this to a strong secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///messages.db'
 db = SQLAlchemy(app)
 
-users = {'admin': 'admin', 'user': 'user'}
+users = {
+    'admin': {'password': 'admin', 'role': 'instructor'},
+    'user': {'password': 'user', 'role': 'student'}
+}
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
+    role = SelectField('Role', choices=[('student', 'Student'), ('instructor', 'Instructor')], validators=[DataRequired()])
     submit = SubmitField('Login')
 
 class MessageForm(FlaskForm):
@@ -27,12 +31,14 @@ class CommentForm(FlaskForm):
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False)
+    user_role = db.Column(db.String(50), nullable=False)
     content = db.Column(db.Text, nullable=False)
     comments = db.relationship('Comment', backref='message', lazy=True)
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.String(150), nullable=False)
+    user_role = db.Column(db.String(50), nullable=False)
     content = db.Column(db.Text, nullable=False)
     message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
 
@@ -47,13 +53,15 @@ def login():
     if form.validate_on_submit():
         username = form.username.data
         password = form.password.data
+        role = form.role.data
         
-        if username in users and users[username] == password:
+        if username in users and users[username]['password'] == password and users[username]['role'] == role:
             session['user'] = username
+            session['role'] = users[username]['role']
             flash('Login successful!', 'success')
             return redirect(url_for('message_board'))
         else:
-            flash('Invalid username or password', 'danger')
+            flash('Invalid username/password/role', 'danger')
     
     return render_template('login.html', form=form)
 
@@ -65,7 +73,7 @@ def message_board():
     
     form = MessageForm()
     if form.validate_on_submit():
-        new_message = Message(username=session['user'], content=form.message.data)
+        new_message = Message(username=session['user'], user_role=session['role'], content=form.message.data)
         db.session.add(new_message)
         db.session.commit()
         return redirect(url_for('message_board'))
@@ -82,7 +90,7 @@ def view_message(message_id):
     comment_form = CommentForm()
 
     if comment_form.validate_on_submit():
-        new_comment = Comment(user=session['user'], content=comment_form.comment.data, message_id=message.id)
+        new_comment = Comment(user=session['user'], user_role=session['role'], content=comment_form.comment.data, message_id=message.id)
         db.session.add(new_comment)
         db.session.commit()
         return redirect(url_for('view_message', message_id=message.id))
@@ -92,6 +100,7 @@ def view_message(message_id):
 @app.route('/logout')
 def logout():
     session.pop('user', None)
+    session.pop('role', None)
     flash('Logged out successfully!', 'info')
     return redirect(url_for('login'))
 

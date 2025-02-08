@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h2>Message from {{ message.username }}</h2>
+    <h2>Message from {{ message.username }} <span class="{{ message.user_role }}">{{ message.user_role }}</span></h2>
     <p>{{ message.content }}</p>
 
     <h3>Comments</h3>
     {% if message.comments %}
         <ul>
             {% for comment in message.comments %}
-                <li><strong>{{ comment.user }}:</strong> {{ comment.content }}</li>
+                <li><strong>{{ comment.user }} <span class="{{ comment.user_role }}">{{ comment.user_role }}</span>:</strong> {{ comment.content }}</li>
             {% endfor %}
         </ul>
     {% else %}
