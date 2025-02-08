@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Board</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h2>Welcome, {{ username }}!</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>{{ form.message.label }} {{ form.message() }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+
+    <h3>Messages:</h3>
+    <ul>
+        {% for message in messages %}
+            <li><strong>{{ message.username }}</strong>: {{ message.content }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>

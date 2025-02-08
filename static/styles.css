@@ -1,0 +1,8 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 50px;
+}
+p.success { color: green; }
+p.danger { color: red; }
+p.warning { color: orange; }
